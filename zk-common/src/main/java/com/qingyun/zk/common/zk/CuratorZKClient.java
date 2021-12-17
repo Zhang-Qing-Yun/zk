@@ -1,5 +1,6 @@
 package com.qingyun.zk.common.zk;
 
+import com.alibaba.fastjson.JSON;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -76,6 +77,10 @@ public class CuratorZKClient {
      * @param data 该结点的数据
      */
     public void createNode(String zkPath, String data) throws Exception {
+        if (isNodeExist(zkPath)) {
+            setNodeData(zkPath, data.getBytes(StandardCharsets.UTF_8));
+            return;
+        }
         // 创建一个永久节点，节点的数据为payload
         byte[] payload = null;
         if (data != null) {
@@ -84,6 +89,26 @@ public class CuratorZKClient {
         client.create()
                 .creatingParentsIfNeeded()
                 .withMode(CreateMode.PERSISTENT)
+                .forPath(zkPath, payload);
+    }
+
+    /**
+     * 创建临时结点
+     * @param zkPath 该结点在ZK中的路径
+     * @param data 该结点的数据
+     */
+    public void createTemporaryNode(String zkPath, String data) throws Exception {
+        if (isNodeExist(zkPath)) {
+            setNodeData(zkPath, data.getBytes(StandardCharsets.UTF_8));
+            return;
+        }
+        byte[] payload = null;
+        if (data != null) {
+            payload = data.getBytes(StandardCharsets.UTF_8);
+        }
+        client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL)
                 .forPath(zkPath, payload);
     }
 
